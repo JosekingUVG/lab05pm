@@ -4,47 +4,20 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.labn5.ui.theme.Labn5Theme
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
-import androidx.compose.ui.text.style.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.material3.BottomAppBar
-//import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import coil.compose.AsyncImage
+import com.example.labn5.ui.theme.Labn5Theme
 
-
+data class LaLista(val nombre: String, val url: String)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,21 +25,22 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Labn5Theme {
-
                 ScaffoldExample()
-                }
             }
         }
     }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
-// [START android_compose_components_scaffold]
 @Composable
 fun ScaffoldExample() {
-    var presses by remember {
-        mutableIntStateOf(0)
-    }
+    // Estado de la lista
+    val itemList = remember { mutableStateListOf<LaLista>() }
+
+    // Estados para los inputs
+    var nombre by remember { mutableStateOf("") }
+    var url by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -76,7 +50,17 @@ fun ScaffoldExample() {
                     titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
                 title = {
-                    Text("App de Recetas")
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("App de Recetas")
+                        AsyncImage(
+                            model = "https://altiplano.uvg.edu.gt/nosotros/img/png/Logo%20UVG-%20Colores.png",
+                            contentDescription = "Logo UVG",
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
                 }
             )
         },
@@ -86,75 +70,111 @@ fun ScaffoldExample() {
                 contentColor = MaterialTheme.colorScheme.primary,
             ) {
                 Text(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                     fontSize = 11.sp,
                     text = "José Rivera 24376",
                 )
             }
-        },
-        /*floatingActionButton = {
-            FloatingActionButton(onClick = { presses++ }) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
-            }
-        }*/
-    )
-    { innerPadding ->
-        LazyColumn(
+        }
+    ) { innerPadding ->
+        Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(16.dp)
         ) {
-            item {
-                Text(
-                    modifier = Modifier.padding(8.dp),
-                    text =
-                        """
-                    This is an example of a scaffold. It uses the Scaffold composable's parameters to create a screen with a simple top app bar, bottom app bar, and floating action button.
-                    
-                    It also contains some basic inner content, such as this text.
-                    
-                    You have pressed the floating action button $presses times.
-                """.trimIndent(),
-                )
-                Spacer(modifier = Modifier.height(30.dp))
-                // [START android_compose_state_text_4]
-                // ✅ TextField Material3 correcto
-                var text by remember { mutableStateOf("") }
-                TextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    label = { Text("Escribe algo") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = false,
-                    maxLines = 4
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-                FilledTonalButton(onClick = {  }) {
-                    Text("Agregar")
+            // Inputs
+            TextField(
+                value = nombre,
+                onValueChange = { nombre = it },
+                label = { Text("Nombre") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(8.dp))
 
+            TextField(
+                value = url,
+                onValueChange = { url = it },
+                label = { Text("URL de la imagen") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(8.dp))
+
+            // Botón agregar
+            FilledTonalButton(
+                onClick = {
+                    agregarReceta(itemList, nombre, url)
+                    nombre = ""
+                    url = ""
                 }
-                Spacer(modifier = Modifier.height(15.dp))
+            ) {
+                Text("Agregar")
+            }
 
-                LoadingImageFromInternetCoil()
+            Spacer(Modifier.height(16.dp))
+
+            // Mostrar lista
+            ListaDeRecetas(itemList) { receta ->
+                eliminarReceta(itemList, receta)
             }
         }
     }
-
 }
-// [END android_compose_components_scaffold]
 
+/* ---------- FUNCIONES AUXILIARES ---------- */
 
+// Agregar receta
+fun agregarReceta(lista: MutableList<LaLista>, nombre: String, url: String) {
+    if (nombre.isNotBlank() && url.isNotBlank()) {
+        lista.add(LaLista(nombre, url))
+    }
+}
 
-@Preview
+// Eliminar receta
+fun eliminarReceta(lista: MutableList<LaLista>, receta: LaLista) {
+    lista.remove(receta)
+}
+
+// Mostrar lista completa
 @Composable
-fun LoadingImageFromInternetCoil() {
-    // [START android_compose_images_load_internet_coil]
-    AsyncImage(
-        model = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ2-uw93cbkJRVx_FSFJqd5ibeS9Ts_0EHJqg&s",
-        contentDescription = "Translated description of what the image contains"
-    )
-    // [END android_compose_images_load_internet_coil]
+fun ListaDeRecetas(itemList: List<LaLista>, onEliminar: (LaLista) -> Unit) {
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        items(itemList) { item ->
+            RecetaItem(item, onEliminar)
+        }
+    }
 }
+
+// Renderizar un item
+@Composable
+fun RecetaItem(item: LaLista, onEliminar: (LaLista) -> Unit) {
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        AsyncImage(
+            model = item.url,
+            contentDescription = item.nombre,
+            modifier = Modifier.size(60.dp)
+        )
+        Text(
+            text = item.nombre,
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 12.dp)
+        )
+        FilledTonalButton(onClick = { onEliminar(item) }) {
+            Text("Eliminar")
+        }
+    }
+}
+
+//Hamburguesa
+// https://i.revistapym.com.co/old/2016/10/las-comidas-rapidas-1.png?w=1200
+//Burrito
+//https://oem.com.mx/elsoldezamora/img/14002218/1726669911/BASE_LANDSCAPE/480/image.webp
+//Shwarma
+//https://i.guim.co.uk/img/media/698fd183dc12485059346ec795d4b1325d5b25bc/275_1424_2872_2872/master/2872.jpg?width=465&dpr=1&s=none&crop=none
