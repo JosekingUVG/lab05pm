@@ -1,7 +1,7 @@
 # Lab 4.2 - App de Recetas
 
 ## Video Explicativo:
-[Insertar enlace del video aquí]
+https://www.youtube.com/watch?v=95ELE0VyRfw&feature=youtu.be 
 
 ## Descripción del Proyecto
 Esta aplicación móvil desarrollada en Android con Jetpack Compose permite a los usuarios crear y gestionar una lista de recetas de manera sencilla e intuitiva.
